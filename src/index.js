@@ -10,19 +10,72 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers
+
+  const user = users.some(user => user.username === username)
+
+  if(!user){
+    return response.status(400).send({ error: "Usuário não existe"});
+  }
+
+  request.user = user;
+
+  next();
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  const { user } = request;
+
+  const check = ((!user.pro && user.todos.length < 10) || user.pro);  
+
+  if(!check){
+    return response.status(400).send({error: "O usuário não tem permissão para criar todos."})
+  }
+
+  next();
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+  const { id } = request.params;
+
+  const user = users.find(user => user.username === username)
+
+  if(!user){
+    return response.status(404);
+  }
+  const verifyIdUuid = validate(id);
+
+  console.log(user);
+
+  if(!verifyIdUuid){
+    return response.status(400);
+  }
+
+  const todo = user.todos.filter(todo => todo.id === id);
+
+  if(!todo){
+    return response.status(404);
+  }
+
+  request.user = user;
+  request.todo = todo;
+
+  next();
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+  const { id } = request.params;
+
+  const user = users.find(user => user.id === id);
+
+  if (!user){
+    return response.status(404);
+  }
+  
+  request.user = user;
+
+  next();
 }
 
 app.post('/users', (request, response) => {
